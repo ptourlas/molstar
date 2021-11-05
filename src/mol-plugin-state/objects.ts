@@ -61,7 +61,7 @@ export namespace PluginStateObject {
 
         export class CoordArray extends Create<FrameArray>({ name: 'Coordinate Array', typeClass: 'Data' }) { }
         export type FrameArray = ArrayEntry[]
-        export type ArrayEntry = Number[]
+        export type ArrayEntry = number[]
 
         export type BlobEntry = { id: string } & (
             { kind: 'string', data: string } |
