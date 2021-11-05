@@ -59,6 +59,10 @@ export namespace PluginStateObject {
         export class String extends Create<string>({ name: 'String Data', typeClass: 'Data', }) { }
         export class Binary extends Create<Uint8Array>({ name: 'Binary Data', typeClass: 'Data' }) { }
 
+        export class CoordArray extends Create<FrameArray>({ name: 'Coordinate Array', typeClass: 'Data' }) { }
+        export type FrameArray = ArrayEntry[]
+        export type ArrayEntry = Number[]
+
         export type BlobEntry = { id: string } & (
             { kind: 'string', data: string } |
             { kind: 'binary', data: Uint8Array }
@@ -116,7 +120,7 @@ export namespace PluginStateObject {
             export class Representation3DState extends Create<Representation3DStateData>({ name: 'Structure 3D State', typeClass: 'Object' }) { }
 
             export interface SelectionEntry { key: string, groupId?: string, loci: StructureElement.Loci }
-            export class Selections extends Create<ReadonlyArray<SelectionEntry>>({ name: 'Selections', typeClass: 'Object' }) {}
+            export class Selections extends Create<ReadonlyArray<SelectionEntry>>({ name: 'Selections', typeClass: 'Object' }) { }
         }
     }
 
