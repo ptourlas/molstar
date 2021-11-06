@@ -5,6 +5,9 @@
  * @author Alexander Rose <alexander.rose@weirdbyte.de>
  */
 
+import { parseArray } from '../../mol-io/reader/jsarray/parser';
+import { coordinatesFromArray } from '../../mol-model-formats/structure/jsarr'
+
 import { parseDcd } from '../../mol-io/reader/dcd/parser';
 import { parseGRO } from '../../mol-io/reader/gro/parser';
 import { parsePDB } from '../../mol-io/reader/pdb/parser';
@@ -42,6 +45,7 @@ import { trajectoryFromXyz } from '../../mol-model-formats/structure/xyz';
 import { parseSdf } from '../../mol-io/reader/sdf/parser';
 import { trajectoryFromSdf } from '../../mol-model-formats/structure/sdf';
 
+export { CoordinatesFromArray };
 export { CoordinatesFromDcd };
 export { CoordinatesFromXtc };
 export { TopologyFromPsf };
@@ -82,6 +86,24 @@ const CoordinatesFromDcd = PluginStateTransform.BuiltIn({
             const parsed = await parseDcd(a.data).runInContext(ctx);
             if (parsed.isError) throw new Error(parsed.message);
             const coordinates = await coordinatesFromDcd(parsed.result).runInContext(ctx);
+            return new SO.Molecule.Coordinates(coordinates, { label: a.label, description: 'Coordinates' });
+        });
+    }
+});
+
+
+type CoordinatesFromArray = typeof CoordinatesFromArray
+const CoordinatesFromArray = PluginStateTransform.BuiltIn({
+    name: 'coordinates-from-array',
+    display: { name: 'Parse Array', description: 'Parse coordinates array.' },
+    from: [SO.Data.CoordArray],
+    to: SO.Molecule.Coordinates
+})({
+    apply({ a }) {
+        return Task.create('Parse Array', async ctx => {
+            const parsed = await parseArray(a.data).runInContext(ctx);
+            if (parsed.isError) throw new Error(parsed.message);
+            const coordinates = await coordinatesFromArray(parsed.result).runInContext(ctx);
             return new SO.Molecule.Coordinates(coordinates, { label: a.label, description: 'Coordinates' });
         });
     }
@@ -994,7 +1016,7 @@ const ShapeFromPly = PluginStateTransform.BuiltIn({
     from: SO.Format.Ply,
     to: SO.Shape.Provider,
     params(a) {
-        return { };
+        return {};
     }
 })({
     apply({ a, params }) {
