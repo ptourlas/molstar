@@ -59,9 +59,7 @@ export namespace PluginStateObject {
         export class String extends Create<string>({ name: 'String Data', typeClass: 'Data', }) { }
         export class Binary extends Create<Uint8Array>({ name: 'Binary Data', typeClass: 'Data' }) { }
 
-        export class CoordArray extends Create<FrameArray>({ name: 'Coordinate Array', typeClass: 'Data' }) { }
-        export type FrameArray = ArrayEntry[]
-        export type ArrayEntry = number[]
+        export class CoordArray extends Create<number[][]>({ name: 'Coordinate Array', typeClass: 'Data' }) { }
 
         export type BlobEntry = { id: string } & (
             { kind: 'string', data: string } |
