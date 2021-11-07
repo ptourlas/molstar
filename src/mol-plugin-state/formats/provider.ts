@@ -18,8 +18,15 @@ export interface DataFormatProvider<P = any, R = any, V = any> {
     stringExtensions?: string[],
     binaryExtensions?: string[],
     isApplicable?(info: FileInfo, data: string | Uint8Array): boolean,
-    parse(plugin: PluginContext, data: StateObjectRef<PluginStateObject.Data.Binary | PluginStateObject.Data.String>, params?: P): Promise<R>,
     visuals?(plugin: PluginContext, data: R): Promise<V> | undefined
+    parse(
+        plugin: PluginContext,
+        data: StateObjectRef<
+            PluginStateObject.Data.Binary |
+            PluginStateObject.Data.String |
+            PluginStateObject.Data.CoordArray>,
+        params?: P
+    ): Promise<R>,
 }
 
 export function DataFormatProvider<P extends DataFormatProvider>(provider: P): P { return provider; }

@@ -55,10 +55,25 @@ export const XtcProvider = DataFormatProvider({
     }
 });
 
+export const mlkProvider = DataFormatProvider({
+    label: 'MLK',
+    description: 'MLK',
+    category: StructureFormatCategory,
+    binaryExtensions: ['mlk'],
+    parse: (plugin, data) => {
+        const coordinates = plugin.state.data.build()
+            .to(data)
+            .apply(StateTransforms.Model.CoordinatesFromArray);
+
+        return coordinates.commit();
+    }
+});
+
 export const BuiltInStructureFormats = [
     ['psf', PsfProvider] as const,
     ['dcd', DcdProvider] as const,
     ['xtc', XtcProvider] as const,
+    ['mlk', mlkProvider] as const
 ] as const;
 
 export type BuildInStructureFormat = (typeof BuiltInStructureFormats)[number][0]
