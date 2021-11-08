@@ -24,6 +24,7 @@ import { ColorNames } from '../../mol-util/color/names';
 export { Download };
 export { DownloadBlob };
 export { RawData };
+export { RawArr };
 export { ReadFile };
 export { ParseBlob };
 export { ParseCif };
@@ -181,6 +182,36 @@ const RawData = PluginStateTransform.BuiltIn({
         fromJSON(data: any) {
             return data;
         }
+    }
+});
+
+type RawArr = typeof RawArr
+const RawArr = PluginStateTransform.BuiltIn({
+    name: 'raw-arr',
+    display: { name: 'Raw Arr', description: 'Raw array of coords.' },
+    from: [SO.Root],
+    to: [SO.Data.CoordArray],
+    params: {
+        data: PD.Value<number[][]>([], { isHidden: true }),
+        label: PD.Optional(PD.Text(''))
+    }
+})({
+    apply({ params: p }) {
+        return Task.create('Raw Data', async () => {
+            if (p.data) {
+                return new SO.Data.CoordArray(p.data, { label: p.label ? p.label : 'Binary' });
+            } else {
+                throw new Error('Supplied binary data must be a plain array, ArrayBuffer, or Uint8Array.');
+            }
+        });
+    },
+    update({ oldParams, newParams, b }) {
+        if (oldParams.data !== newParams.data) return StateTransformer.UpdateResult.Recreate;
+        if (oldParams.label !== newParams.label) {
+            b.label = newParams.label || b.label;
+            return StateTransformer.UpdateResult.Updated;
+        }
+        return StateTransformer.UpdateResult.Unchanged;
     }
 });
 

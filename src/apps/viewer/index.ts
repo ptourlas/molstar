@@ -18,6 +18,7 @@ import { DownloadDensity } from '../../mol-plugin-state/actions/volume';
 import { StructureRepresentationPresetProvider } from '../../mol-plugin-state/builder/structure/representation-preset';
 import { DataFormatProvider } from '../../mol-plugin-state/formats/provider';
 import { BuiltInTrajectoryFormat } from '../../mol-plugin-state/formats/trajectory';
+import { BuildInStructureFormat } from '../../mol-plugin-state/formats/structure';
 import { BuildInVolumeFormat } from '../../mol-plugin-state/formats/volume';
 import { createVolumeRepresentationParams } from '../../mol-plugin-state/helpers/volume-representation-params';
 import { PluginStateObject } from '../../mol-plugin-state/objects';
@@ -193,6 +194,15 @@ export class Viewer {
         const _data = await this.plugin.builders.data.rawData({ data, label: options?.dataLabel });
         const trajectory = await this.plugin.builders.structure.parseTrajectory(_data, format);
         await this.plugin.builders.structure.hierarchy.applyPreset(trajectory, 'default');
+    }
+
+    async loadMyDamnArray(
+        data: number[][],
+        format: BuildInStructureFormat
+    ) {
+        const _data = await this.plugin.builders.data.rawArr({ data, label: 'okiedokie' })
+        const _coordies = await this.plugin.dataFormats.get(format)?.parse(this.plugin, _data)
+        console.log('coordies', _coordies)
     }
 
     loadPdb(pdb: string, options?: LoadStructureOptions) {

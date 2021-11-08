@@ -6,7 +6,7 @@
 
 import { StateTransformer, StateTransform } from '../../mol-state';
 import { PluginContext } from '../../mol-plugin/context';
-import { Download, ReadFile, DownloadBlob, RawData } from '../transforms/data';
+import { Download, ReadFile, DownloadBlob, RawData, RawArr } from '../transforms/data';
 import { getFileInfo } from '../../mol-util/file-info';
 
 export class DataBuilder {
@@ -16,6 +16,11 @@ export class DataBuilder {
 
     rawData(params: StateTransformer.Params<RawData>, options?: Partial<StateTransform.Options>) {
         const data = this.dataState.build().toRoot().apply(RawData, params, options);
+        return data.commit({ revertOnError: true });
+    }
+
+    rawArr(params: StateTransformer.Params<RawArr>, options?: Partial<StateTransform.Options>) {
+        const data = this.dataState.build().toRoot().apply(RawArr, params, options);
         return data.commit({ revertOnError: true });
     }
 
