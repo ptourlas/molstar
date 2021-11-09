@@ -6,7 +6,7 @@
  */
 
 import { parseArray } from '../../mol-io/reader/jsarray/parser';
-import { coordinatesFromArray } from '../../mol-model-formats/structure/jsarr'
+import { coordinatesFromArray } from '../../mol-model-formats/structure/jsarr';
 
 import { parseDcd } from '../../mol-io/reader/dcd/parser';
 import { parseGRO } from '../../mol-io/reader/gro/parser';
