@@ -55,7 +55,7 @@ export const XtcProvider = DataFormatProvider({
     }
 });
 
-export const mlkProvider = DataFormatProvider({
+export const MktProvider = DataFormatProvider({
     label: 'MKT',
     description: 'MKT',
     category: StructureFormatCategory,
@@ -73,7 +73,7 @@ export const BuiltInStructureFormats = [
     ['psf', PsfProvider] as const,
     ['dcd', DcdProvider] as const,
     ['xtc', XtcProvider] as const,
-    ['mkt', mlkProvider] as const
+    ['mkt', MktProvider] as const
 ] as const;
 
 export type BuildInStructureFormat = (typeof BuiltInStructureFormats)[number][0]
