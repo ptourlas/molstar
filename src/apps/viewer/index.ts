@@ -13,7 +13,7 @@ import { Mp4Export } from '../../extensions/mp4-export';
 import { GeometryExport } from '../../extensions/geo-export';
 import { PDBeStructureQualityReport } from '../../extensions/pdbe';
 import { RCSBAssemblySymmetry, RCSBValidationReport } from '../../extensions/rcsb';
-import { DownloadStructure, PdbDownloadProvider } from '../../mol-plugin-state/actions/structure';
+import { DownloadStructure, PdbDownloadProvider, AddTrajectory } from '../../mol-plugin-state/actions/structure';
 import { DownloadDensity } from '../../mol-plugin-state/actions/volume';
 import { StructureRepresentationPresetProvider } from '../../mol-plugin-state/builder/structure/representation-preset';
 import { DataFormatProvider } from '../../mol-plugin-state/formats/provider';
@@ -196,13 +196,17 @@ export class Viewer {
         await this.plugin.builders.structure.hierarchy.applyPreset(trajectory, 'default');
     }
 
-    async loadMyDamnArray(
+    async loadMyArray(
         data: number[][],
         format: BuildInStructureFormat
     ) {
-        const _data = await this.plugin.builders.data.rawArr({ data, label: 'okiedokie' })
-        const _coordies = await this.plugin.dataFormats.get(format)?.parse(this.plugin, _data)
-        console.log('coordies', _coordies)
+        const _data = await this.plugin.builders.data.rawArr({
+            data,
+            label: 'COORD_TRAJ_TEST'
+        });
+        const _coordies = await this.plugin.dataFormats.get(format)?.parse(this.plugin, _data);
+        const params = AddTrajectory.createDefaultParams(this.plugin.state.data.root.obj!, this.plugin);
+        this.plugin.state.data.applyAction(AddTrajectory, params);
     }
 
     loadPdb(pdb: string, options?: LoadStructureOptions) {
