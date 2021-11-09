@@ -22,9 +22,9 @@ export interface DataFormatProvider<P = any, R = any, V = any> {
     parse(
         plugin: PluginContext,
         data: StateObjectRef<
-            PluginStateObject.Data.Binary |
-            PluginStateObject.Data.String |
-            PluginStateObject.Data.CoordArray>,
+        PluginStateObject.Data.Binary |
+        PluginStateObject.Data.String |
+        PluginStateObject.Data.CoordArray>,
         params?: P
     ): Promise<R>,
 }
