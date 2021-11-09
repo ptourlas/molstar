@@ -56,10 +56,10 @@ export const XtcProvider = DataFormatProvider({
 });
 
 export const mlkProvider = DataFormatProvider({
-    label: 'MLK',
-    description: 'MLK',
+    label: 'MKT',
+    description: 'MKT',
     category: StructureFormatCategory,
-    binaryExtensions: ['mlk'],
+    binaryExtensions: ['mkt'],
     parse: (plugin, data) => {
         const coordinates = plugin.state.data.build()
             .to(data)
@@ -73,7 +73,7 @@ export const BuiltInStructureFormats = [
     ['psf', PsfProvider] as const,
     ['dcd', DcdProvider] as const,
     ['xtc', XtcProvider] as const,
-    ['mlk', mlkProvider] as const
+    ['mkt', mlkProvider] as const
 ] as const;
 
 export type BuildInStructureFormat = (typeof BuiltInStructureFormats)[number][0]
