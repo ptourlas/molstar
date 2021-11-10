@@ -13,12 +13,11 @@ import { Mp4Export } from '../../extensions/mp4-export';
 import { GeometryExport } from '../../extensions/geo-export';
 import { PDBeStructureQualityReport } from '../../extensions/pdbe';
 import { RCSBAssemblySymmetry, RCSBValidationReport } from '../../extensions/rcsb';
-import { DownloadStructure, PdbDownloadProvider, AddTrajectory } from '../../mol-plugin-state/actions/structure';
+import { DownloadStructure, PdbDownloadProvider } from '../../mol-plugin-state/actions/structure';
 import { DownloadDensity } from '../../mol-plugin-state/actions/volume';
 import { StructureRepresentationPresetProvider } from '../../mol-plugin-state/builder/structure/representation-preset';
 import { DataFormatProvider } from '../../mol-plugin-state/formats/provider';
 import { BuiltInTrajectoryFormat } from '../../mol-plugin-state/formats/trajectory';
-import { BuildInStructureFormat } from '../../mol-plugin-state/formats/structure';
 import { BuildInVolumeFormat } from '../../mol-plugin-state/formats/volume';
 import { createVolumeRepresentationParams } from '../../mol-plugin-state/helpers/volume-representation-params';
 import { PluginStateObject } from '../../mol-plugin-state/objects';
@@ -31,7 +30,11 @@ import { PluginCommands } from '../../mol-plugin/commands';
 import { PluginConfig } from '../../mol-plugin/config';
 import { PluginSpec } from '../../mol-plugin/spec';
 import { PluginState } from '../../mol-plugin/state';
-import { StateObjectSelector } from '../../mol-state';
+import { StateObjectSelector, StateTransformer } from '../../mol-state';
+import { ParamDefinition as PD } from '../../mol-util/param-definition';
+import { Task } from '../../mol-task';
+import { Coordinates, Time } from '../../mol-model/structure/coordinates';
+import { TrajectoryFromModelAndCoordinates } from '../../mol-plugin-state/transforms/model';
 import { Asset } from '../../mol-util/assets';
 import { Color } from '../../mol-util/color';
 import '../../mol-util/polyfill';
@@ -91,6 +94,19 @@ const DefaultViewerOptions = {
 };
 type ViewerOptions = typeof DefaultViewerOptions;
 
+function getCoords(data: number[]) {
+    const len = data.length / 3;
+    const x = new Float32Array(len);
+    const y = new Float32Array(len);
+    const z = new Float32Array(len);
+    for (let i = 0, _i = data.length, o = 0; i < _i; i += 3) {
+        x[o] = data[i];
+        y[o] = data[i + 1];
+        z[o] = data[i + 2];
+        o++;
+    }
+    return { x, y, z };
+}
 export class Viewer {
     plugin: PluginUIContext
 
@@ -157,6 +173,51 @@ export class Viewer {
         this.plugin = createPlugin(element, spec);
     }
 
+    CreateTransformer = StateTransformer.builderFactory('custom')
+
+    CreateMyCoordinates = this.CreateTransformer({
+        name: 'create-coords',
+        from: PluginStateObject.Root,
+        to: PluginStateObject.Molecule.Coordinates,
+        params: {
+            data: PD.Value<number[][]>([], { isHidden: true })
+        }
+    })({
+        apply({ params }) {
+            return Task.create('Create Trajectory', async ctx => {
+                const coords = Coordinates.create(
+                    params.data.map((cs, i) => ({
+                        ...getCoords(cs),
+                        elementCount: cs.length / 3,
+                        time: Time(i, 'step'),
+                        xyzOrdering: { isIdentity: true }
+                    })),
+                    Time(1, 'step'),
+                    Time(0, 'step')
+                );
+
+                return new PluginStateObject.Molecule.Coordinates(coords, { label: 'label' });
+            });
+        }
+    });
+
+    async createMyObjects(pdbData: string, coordinates: number[][]) {
+        const _pdbData = await this.plugin.builders.data.rawData({ data: pdbData, label: '...' });
+        const pdbTrajectory = await this.plugin.builders.structure.parseTrajectory(_pdbData, 'pdb');
+        const pdbModel = await this.plugin.builders.structure.createModel(pdbTrajectory);
+
+        const coords = await this.plugin.build().toRoot().apply(this.CreateMyCoordinates, { data: coordinates }).commit();
+        const trajectory = await this.plugin.build().toRoot()
+            .apply(TrajectoryFromModelAndCoordinates, {
+                modelRef: pdbModel.ref,
+                coordinatesRef: coords.ref
+            }, { dependsOn: [pdbModel.ref, coords.ref] })
+            .commit();
+
+        await this.plugin.builders.structure.hierarchy.applyPreset(trajectory, 'all-models');
+    }
+
+
     setRemoteSnapshot(id: string) {
         const url = `${this.plugin.config.get(PluginConfig.State.CurrentServer)}/get/${id}`;
         return PluginCommands.State.Snapshots.Fetch(this.plugin, { url });
@@ -194,19 +255,6 @@ export class Viewer {
         const _data = await this.plugin.builders.data.rawData({ data, label: options?.dataLabel });
         const trajectory = await this.plugin.builders.structure.parseTrajectory(_data, format);
         await this.plugin.builders.structure.hierarchy.applyPreset(trajectory, 'default');
-    }
-
-    async loadMyArray(
-        data: number[][],
-        format: BuildInStructureFormat
-    ) {
-        const _data = await this.plugin.builders.data.rawArr({
-            data,
-            label: 'COORD_TRAJ_TEST'
-        });
-        const _coordies = await this.plugin.dataFormats.get(format)?.parse(this.plugin, _data);
-        const params = AddTrajectory.createDefaultParams(this.plugin.state.data.root.obj!, this.plugin);
-        this.plugin.state.data.applyAction(AddTrajectory, params);
     }
 
     loadPdb(pdb: string, options?: LoadStructureOptions) {
