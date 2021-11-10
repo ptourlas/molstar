@@ -201,7 +201,7 @@ export class Viewer {
         }
     });
 
-    async createMyObjects(pdbData: string, coordinates: number[][]) {
+    async trajectoryFromPDBandCoordinates(pdbData: string, coordinates: number[][]) {
         const _pdbData = await this.plugin.builders.data.rawData({ data: pdbData, label: '...' });
         const pdbTrajectory = await this.plugin.builders.structure.parseTrajectory(_pdbData, 'pdb');
         const pdbModel = await this.plugin.builders.structure.createModel(pdbTrajectory);
@@ -214,7 +214,7 @@ export class Viewer {
             }, { dependsOn: [pdbModel.ref, coords.ref] })
             .commit();
 
-        await this.plugin.builders.structure.hierarchy.applyPreset(trajectory, 'all-models');
+        await this.plugin.builders.structure.hierarchy.applyPreset(trajectory, 'default');
     }
 
 
